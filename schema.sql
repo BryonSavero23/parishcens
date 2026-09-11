@@ -147,23 +147,35 @@ alter table public.household_members enable row level security;
 alter table public.pastoral_care     enable row level security;
 
 -- Allow anonymous inserts (public form submissions) --------------
+-- We first grant the table-level INSERT privilege to the Supabase
+-- `anon` and `authenticated` roles (RLS by itself is not enough —
+-- the role still needs the underlying GRANT), then attach a permissive
+-- RLS policy scoped to `public`, which covers anon + authenticated +
+-- any future role Supabase adds.
+grant usage on schema public to anon, authenticated;
+grant insert on public.households        to anon, authenticated;
+grant insert on public.household_members to anon, authenticated;
+grant insert on public.pastoral_care     to anon, authenticated;
+
 drop policy if exists "anon can insert households"        on public.households;
 drop policy if exists "anon can insert household_members" on public.household_members;
 drop policy if exists "anon can insert pastoral_care"     on public.pastoral_care;
 
+-- `to public` explicitly includes the anon role, so unauthenticated
+-- visitors submitting the census form pass the WITH CHECK clause.
 create policy "anon can insert households"
     on public.households for insert
-    to anon, authenticated
+    to public
     with check (true);
 
 create policy "anon can insert household_members"
     on public.household_members for insert
-    to anon, authenticated
+    to public
     with check (true);
 
 create policy "anon can insert pastoral_care"
     on public.pastoral_care for insert
-    to anon, authenticated
+    to public
     with check (true);
 
 -- Allow SELECT only to authenticated (admin) users ---------------
