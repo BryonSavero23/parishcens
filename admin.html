@@ -464,18 +464,65 @@
       });
     });
 
+    /* -----------------------------------------------------------------
+       Simple, resilient load: fetch the three base tables independently
+       and merge them client-side. Avoids the census_admin_view (which
+       may or may not exist on the DB) and any embedded-join syntax that
+       can trip on RLS. If pastoral_care or household_members fail we
+       still show the household list.
+       ----------------------------------------------------------------- */
     async function loadRows(){
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = `<tr><td colspan="11" class="empty">Loading…</td></tr>`;
-      const { data, error } = await db
-        .from('census_admin_view')
+
+      // 1) Households — the authoritative list.
+      const { data: households, error: hErr } = await db
+        .from('households')
         .select('*')
         .order('submitted_at', { ascending: false });
-      if(error){
-        tbody.innerHTML = `<tr><td colspan="11" class="empty" style="color:var(--err)">Error: ${escapeHtml(error.message)}</td></tr>`;
+      if(hErr){
+        tbody.innerHTML = `<tr><td colspan="11" class="empty" style="color:var(--err)">Error loading households: ${escapeHtml(hErr.message)}</td></tr>`;
         return;
       }
-      rows = data || [];
+
+      // 2) Pastoral care + members (for counts) — best effort, in parallel.
+      const [pcRes, memRes] = await Promise.all([
+        db.from('pastoral_care').select('*'),
+        db.from('household_members').select('household_id, member_type'),
+      ]);
+      if(pcRes.error)  console.warn('pastoral_care fetch failed:',  pcRes.error.message);
+      if(memRes.error) console.warn('household_members fetch failed:', memRes.error.message);
+
+      // Index for O(1) joins.
+      const pcByHh = new Map();
+      (pcRes.data || []).forEach(pc => pcByHh.set(pc.household_id, pc));
+
+      const childCountByHh = new Map();
+      (memRes.data || []).forEach(m => {
+        if(m.member_type !== 'child') return;
+        childCountByHh.set(m.household_id, (childCountByHh.get(m.household_id) || 0) + 1);
+      });
+
+      // Flatten into the shape the rest of the dashboard already uses.
+      rows = (households || []).map(h => {
+        const pc = pcByHh.get(h.id) || {};
+        return {
+          id: h.id,
+          submitted_at: h.submitted_at,
+          name: h.name,
+          bec: h.bec,
+          head_of_household: h.head_of_household,
+          address: h.address,
+          phone_whatsapp: h.phone_whatsapp,
+          email: h.email,
+          children_count: childCountByHh.get(h.id) || 0,
+          homebound_sick: !!pc.homebound_sick,
+          request_visit:  !!pc.request_visit,
+          new_to_parish:  !!pc.new_to_parish,
+          talents_skills: pc.talents_skills || null,
+        };
+      });
+
       updateStats();
       render();
     }
