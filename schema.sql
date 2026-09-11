@@ -201,6 +201,42 @@ create policy "authed can read pastoral_care"
 -- The view inherits RLS from underlying tables, so authenticated
 -- users automatically get read access to census_admin_view.
 
+-- Allow signed-in admins to EDIT and DELETE ----------------------
+-- Needed for the admin dashboard's Edit / Delete actions. Because
+-- household_members and pastoral_care declare `on delete cascade`
+-- against households(id), deleting a household row wipes the whole
+-- family record atomically.
+grant update, delete on public.households        to authenticated;
+grant update, delete on public.household_members to authenticated;
+grant update, delete on public.pastoral_care     to authenticated;
+
+drop policy if exists "authed can update households"        on public.households;
+drop policy if exists "authed can update household_members" on public.household_members;
+drop policy if exists "authed can update pastoral_care"     on public.pastoral_care;
+drop policy if exists "authed can delete households"        on public.households;
+drop policy if exists "authed can delete household_members" on public.household_members;
+drop policy if exists "authed can delete pastoral_care"     on public.pastoral_care;
+
+create policy "authed can update households"
+    on public.households for update
+    to authenticated using (true) with check (true);
+create policy "authed can update household_members"
+    on public.household_members for update
+    to authenticated using (true) with check (true);
+create policy "authed can update pastoral_care"
+    on public.pastoral_care for update
+    to authenticated using (true) with check (true);
+
+create policy "authed can delete households"
+    on public.households for delete
+    to authenticated using (true);
+create policy "authed can delete household_members"
+    on public.household_members for delete
+    to authenticated using (true);
+create policy "authed can delete pastoral_care"
+    on public.pastoral_care for delete
+    to authenticated using (true);
+
 -- ============================================================
 -- Done. Verify with:
 --   select * from public.census_admin_view order by submitted_at desc;
