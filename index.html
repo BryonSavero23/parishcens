@@ -161,6 +161,13 @@
     footer{
       text-align:center;color:var(--muted);font-size:12px;margin-top:26px;
     }
+    footer a.admin-link{
+      color:var(--muted);text-decoration:none;
+      border-bottom:1px dotted var(--line);
+      margin-left:6px;padding-bottom:1px;
+      transition:color .15s,border-color .15s;
+    }
+    footer a.admin-link:hover{color:var(--accent);border-color:var(--accent)}
     @media (max-width:640px){
       .grid{grid-template-columns:1fr}
       .checks{grid-template-columns:repeat(2,1fr)}
@@ -296,7 +303,10 @@
       <button type="button" class="btn btn-ghost" onclick="location.reload()">Submit another</button>
     </div>
 
-    <footer>&copy; <span id="yr"></span> Parish Office &middot; Powered by Supabase</footer>
+    <footer>
+      &copy; <span id="yr"></span> Parish Office &middot; Powered by Supabase
+      &middot; <a class="admin-link" href="admin.html">Admin Login</a>
+    </footer>
   </div>
 
   <!-- Supabase JS SDK -->
@@ -308,7 +318,7 @@
     /* ---------------- Supabase client ---------------- */
     const SUPABASE_URL      = window.SUPABASE_URL      || 'https://cesaxzzaagyrpwfjvuzv.supabase.co';
     const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlc2F4enphYWd5cnB3Zmp2dXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNDAyNDEsImV4cCI6MjEwNDcxNjI0MX0.mjp0BZ17sIXl9mvz9W5jLr6WkV4yR65oZGLJc8zkxz0';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     /* ---------------- Dynamic children ---------------- */
     const childrenWrap = document.getElementById('children');
@@ -428,7 +438,7 @@
           phone_whatsapp:    document.getElementById('phone').value.trim() || null,
           email:             document.getElementById('email').value.trim() || null,
         };
-        const { data: hhRows, error: hhErr } = await supabase
+        const { data: hhRows, error: hhErr } = await db
           .from('households').insert(household).select('id').single();
         if(hhErr) throw hhErr;
         const household_id = hhRows.id;
@@ -450,7 +460,7 @@
         }
         collectChildren().forEach(c => members.push({ ...c, household_id }));
         if(members.length){
-          const { error: mErr } = await supabase.from('household_members').insert(members);
+          const { error: mErr } = await db.from('household_members').insert(members);
           if(mErr) throw mErr;
         }
 
@@ -464,7 +474,7 @@
           new_to_parish: newParish,
           talents_skills: document.getElementById('talents').value.trim() || null,
         };
-        const { error: pErr } = await supabase.from('pastoral_care').insert(pastoral);
+        const { error: pErr } = await db.from('pastoral_care').insert(pastoral);
         if(pErr) throw pErr;
 
         // Success

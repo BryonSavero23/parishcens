@@ -212,14 +212,14 @@
   <script>
     const SUPABASE_URL      = window.SUPABASE_URL      || 'https://cesaxzzaagyrpwfjvuzv.supabase.co';
     const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlc2F4enphYWd5cnB3Zmp2dXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNDAyNDEsImV4cCI6MjEwNDcxNjI0MX0.mjp0BZ17sIXl9mvz9W5jLr6WkV4yR65oZGLJc8zkxz0';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const loginView = document.getElementById('loginView');
     const dashView  = document.getElementById('dashView');
 
     /* ---------- Auth flow ---------- */
     async function refreshSession(){
-      const { data:{ session } } = await supabase.auth.getSession();
+      const { data:{ session } } = await db.auth.getSession();
       if(session){
         loginView.style.display='none';
         dashView.style.display='block';
@@ -238,14 +238,14 @@
       const btn = document.getElementById('loginBtn');
       s.className='status'; s.textContent='Signing in…';
       btn.disabled = true;
-      const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      const { error } = await db.auth.signInWithPassword({ email, password: pass });
       btn.disabled = false;
       if(error){ s.className='status err'; s.textContent = error.message; return; }
       s.className='status ok'; s.textContent='Signed in.';
       refreshSession();
     });
     document.getElementById('signoutBtn').addEventListener('click', async ()=>{
-      await supabase.auth.signOut();
+      await db.auth.signOut();
       refreshSession();
     });
 
@@ -272,7 +272,7 @@
     async function loadRows(){
       const tbody = document.getElementById('tbody');
       tbody.innerHTML = `<tr><td colspan="10" class="empty">Loading…</td></tr>`;
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('census_admin_view')
         .select('*')
         .order('submitted_at', { ascending: false });
@@ -374,8 +374,8 @@
       const cell = detailTr.firstElementChild;
 
       const [{ data: members, error: mErr }, { data: pcRows, error: pErr }] = await Promise.all([
-        supabase.from('household_members').select('*').eq('household_id', id).order('member_type').order('display_order'),
-        supabase.from('pastoral_care').select('*').eq('household_id', id).limit(1),
+        db.from('household_members').select('*').eq('household_id', id).order('member_type').order('display_order'),
+        db.from('pastoral_care').select('*').eq('household_id', id).limit(1),
       ]);
       if(mErr || pErr){
         cell.innerHTML = `<span style="color:var(--err)">Error loading details: ${escapeHtml((mErr||pErr).message)}</span>`;
@@ -449,7 +449,7 @@
     });
 
     /* ---------- Init ---------- */
-    supabase.auth.onAuthStateChange(()=>refreshSession());
+    db.auth.onAuthStateChange(()=>refreshSession());
     refreshSession();
   </script>
 </body>
