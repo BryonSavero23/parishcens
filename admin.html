@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parish Census — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#f6f1e7;
+      --paper:#ffffff;
+      --ink:#1c1a17;
+      --muted:#6b6459;
+      --line:#d9cfbc;
+      --accent:#7a1f1f;
+      --accent-2:#b08a2e;
+      --ok:#2e7d32;
+      --err:#b3261e;
+      --row:#fbf7ef;
+      --row-alt:#ffffff;
+      --hover:#efe6d1;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:var(--bg);color:var(--ink);
+    }
+    .topbar{
+      background:var(--accent);color:#fff;
+      padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
+      box-shadow:0 2px 8px rgba(0,0,0,.1);
+    }
+    .topbar h1{
+      font-family:'Cormorant Garamond',serif;font-weight:700;
+      font-size:22px;margin:0;letter-spacing:.02em;
+    }
+    .topbar .who{font-size:13px;opacity:.9;display:flex;gap:12px;align-items:center}
+    .btn{
+      font:inherit;font-weight:600;cursor:pointer;
+      border-radius:8px;padding:8px 14px;border:1px solid transparent;
+      transition:filter .15s,background .15s;
+    }
+    .btn-light{background:#fff;color:var(--accent)}
+    .btn-light:hover{filter:brightness(.95)}
+    .btn-ghost-inv{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
+    .btn-ghost-inv:hover{background:rgba(255,255,255,.12)}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover{filter:brightness(1.08)}
+    .wrap{max-width:1400px;margin:0 auto;padding:22px}
+    .toolbar{
+      display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+      margin-bottom:14px;
+    }
+    .toolbar input[type=search]{
+      flex:1;min-width:220px;
+      font:inherit;background:#fff;border:1px solid var(--line);
+      border-radius:8px;padding:9px 12px;
+    }
+    .toolbar input[type=search]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(122,31,31,.12)}
+    .stats{display:flex;gap:10px;flex-wrap:wrap}
+    .stat{
+      background:#fff;border:1px solid var(--line);border-radius:10px;
+      padding:8px 14px;font-size:13px;color:var(--muted);
+    }
+    .stat b{color:var(--accent);font-size:16px;margin-right:6px}
+    .card{
+      background:#fff;border:1px solid var(--line);border-radius:12px;
+      box-shadow:0 8px 24px rgba(28,26,23,.06);overflow:hidden;
+    }
+    .table-scroll{overflow-x:auto}
+    table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:1100px}
+    thead th{
+      position:sticky;top:0;background:#f0e7d1;color:#3d3a34;
+      text-align:left;font-weight:600;font-size:12px;
+      letter-spacing:.08em;text-transform:uppercase;
+      padding:12px 14px;border-bottom:1px solid var(--line);
+      cursor:pointer;user-select:none;white-space:nowrap;
+    }
+    thead th .arrow{opacity:.35;margin-left:4px;font-size:10px}
+    thead th.sorted .arrow{opacity:1;color:var(--accent)}
+    tbody td{
+      padding:12px 14px;border-bottom:1px solid #ece3d0;vertical-align:top;
+    }
+    tbody tr{background:var(--row-alt)}
+    tbody tr:nth-child(even){background:var(--row)}
+    tbody tr:hover{background:var(--hover)}
+    tbody tr.expand-row{cursor:pointer}
+    .pill{
+      display:inline-block;padding:2px 8px;border-radius:999px;
+      font-size:11px;font-weight:600;letter-spacing:.05em;
+    }
+    .pill-y{background:#e8f5e9;color:#1b5e20}
+    .pill-n{background:#efe6d1;color:#6b5b28}
+    .muted{color:var(--muted)}
+    .empty{
+      padding:60px 20px;text-align:center;color:var(--muted);
+    }
+    .detail{
+      background:#fbf7ef;padding:14px 18px;border-top:1px dashed var(--line);
+    }
+    .detail h4{margin:0 0 6px;color:var(--accent);font-family:'Cormorant Garamond',serif;font-size:18px}
+    .detail table{min-width:auto;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+    .detail table th{position:static;background:#f4ecd9}
+    .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:6px 20px;font-size:13px;margin:6px 0 12px}
+    .detail-grid div span{color:var(--muted);margin-right:4px}
+    /* Auth panel */
+    .auth{
+      max-width:420px;margin:60px auto;background:#fff;
+      border:1px solid var(--line);border-radius:12px;padding:26px;
+      box-shadow:0 10px 30px rgba(28,26,23,.08);
+    }
+    .auth h2{
+      font-family:'Cormorant Garamond',serif;color:var(--accent);
+      margin:0 0 6px;font-size:24px;text-align:center;
+    }
+    .auth p{color:var(--muted);text-align:center;margin:0 0 18px;font-size:14px}
+    .auth .field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+    .auth label{font-size:13px;font-weight:600;color:#3d3a34}
+    .auth input{
+      font:inherit;background:#fbf7ef;border:1px solid var(--line);
+      border-radius:8px;padding:10px 12px;
+    }
+    .auth input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(122,31,31,.12);background:#fff}
+    .auth .btn{width:100%;padding:12px;margin-top:8px}
+    .status{margin-top:10px;font-size:13px;text-align:center;min-height:18px}
+    .status.err{color:var(--err)}
+    .status.ok{color:var(--ok)}
+    @media(max-width:640px){
+      .topbar h1{font-size:18px}
+      .wrap{padding:14px}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Login panel ===== -->
+  <div id="loginView" style="display:none">
+    <div class="auth">
+      <h2>&#10013; Admin Sign-in</h2>
+      <p>Restricted to Parish Office staff.</p>
+      <form id="loginForm">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" required autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="loginPass">Password</label>
+          <input id="loginPass" type="password" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginBtn">Sign in</button>
+        <div class="status" id="loginStatus" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Dashboard ===== -->
+  <div id="dashView" style="display:none">
+    <div class="topbar">
+      <h1>&#10013; Parish Census — Admin</h1>
+      <div class="who">
+        <span id="whoLabel"></span>
+        <button class="btn btn-ghost-inv" id="refreshBtn">Refresh</button>
+        <button class="btn btn-ghost-inv" id="exportBtn">Export CSV</button>
+        <button class="btn btn-light"     id="signoutBtn">Sign out</button>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Search name, address, BEC, email…" />
+        <div class="stats">
+          <div class="stat"><b id="statTotal">0</b>households</div>
+          <div class="stat"><b id="statChildren">0</b>children recorded</div>
+          <div class="stat"><b id="statNew">0</b>new to parish</div>
+          <div class="stat"><b id="statHome">0</b>homebound / sick</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-scroll">
+          <table id="tbl">
+            <thead>
+              <tr>
+                <th data-key="submitted_at">Submitted <span class="arrow">&#9660;</span></th>
+                <th data-key="name">Name <span class="arrow"></span></th>
+                <th data-key="head_of_household">Head of Household <span class="arrow"></span></th>
+                <th data-key="bec">BEC <span class="arrow"></span></th>
+                <th data-key="address">Address <span class="arrow"></span></th>
+                <th data-key="phone_whatsapp">Phone <span class="arrow"></span></th>
+                <th data-key="email">Email <span class="arrow"></span></th>
+                <th data-key="children_count">Children <span class="arrow"></span></th>
+                <th data-key="homebound_sick">Homebound <span class="arrow"></span></th>
+                <th data-key="new_to_parish">New <span class="arrow"></span></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="empty" style="display:none">
+          No submissions yet. Once households complete the census form, they will appear here.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script>
+    const SUPABASE_URL      = window.SUPABASE_URL      || 'https://YOUR-PROJECT-REF.supabase.co';
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const loginView = document.getElementById('loginView');
+    const dashView  = document.getElementById('dashView');
+
+    /* ---------- Auth flow ---------- */
+    async function refreshSession(){
+      const { data:{ session } } = await supabase.auth.getSession();
+      if(session){
+        loginView.style.display='none';
+        dashView.style.display='block';
+        document.getElementById('whoLabel').textContent = session.user.email;
+        loadRows();
+      } else {
+        dashView.style.display='none';
+        loginView.style.display='block';
+      }
+    }
+    document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass  = document.getElementById('loginPass').value;
+      const s = document.getElementById('loginStatus');
+      const btn = document.getElementById('loginBtn');
+      s.className='status'; s.textContent='Signing in…';
+      btn.disabled = true;
+      const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      btn.disabled = false;
+      if(error){ s.className='status err'; s.textContent = error.message; return; }
+      s.className='status ok'; s.textContent='Signed in.';
+      refreshSession();
+    });
+    document.getElementById('signoutBtn').addEventListener('click', async ()=>{
+      await supabase.auth.signOut();
+      refreshSession();
+    });
+
+    /* ---------- Data + table ---------- */
+    let rows = [];
+    let sortKey = 'submitted_at';
+    let sortDir = 'desc';   // 'asc' | 'desc'
+    let filterText = '';
+
+    document.getElementById('refreshBtn').addEventListener('click', loadRows);
+    document.getElementById('search').addEventListener('input', (e)=>{
+      filterText = e.target.value.trim().toLowerCase();
+      render();
+    });
+    document.querySelectorAll('#tbl thead th').forEach(th=>{
+      th.addEventListener('click', ()=>{
+        const key = th.dataset.key;
+        if(sortKey === key) sortDir = (sortDir==='asc'?'desc':'asc');
+        else { sortKey = key; sortDir = 'asc'; }
+        render();
+      });
+    });
+
+    async function loadRows(){
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = `<tr><td colspan="10" class="empty">Loading…</td></tr>`;
+      const { data, error } = await supabase
+        .from('census_admin_view')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+      if(error){
+        tbody.innerHTML = `<tr><td colspan="10" class="empty" style="color:var(--err)">Error: ${escapeHtml(error.message)}</td></tr>`;
+        return;
+      }
+      rows = data || [];
+      updateStats();
+      render();
+    }
+
+    function updateStats(){
+      document.getElementById('statTotal').textContent    = rows.length;
+      document.getElementById('statChildren').textContent = rows.reduce((s,r)=>s + (r.children_count||0), 0);
+      document.getElementById('statNew').textContent      = rows.filter(r=>r.new_to_parish).length;
+      document.getElementById('statHome').textContent     = rows.filter(r=>r.homebound_sick).length;
+    }
+
+    function cmp(a,b){
+      if(a==null && b==null) return 0;
+      if(a==null) return -1;
+      if(b==null) return 1;
+      if(typeof a === 'number' && typeof b === 'number') return a-b;
+      return String(a).localeCompare(String(b), undefined, { numeric:true, sensitivity:'base' });
+    }
+    function fmtDate(iso){
+      if(!iso) return '';
+      const d = new Date(iso);
+      if(isNaN(d)) return iso;
+      return d.toLocaleString(undefined, { year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+    }
+    function escapeHtml(s){
+      return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function render(){
+      // Sort indicators
+      document.querySelectorAll('#tbl thead th').forEach(th=>{
+        const arrow = th.querySelector('.arrow');
+        if(th.dataset.key === sortKey){
+          th.classList.add('sorted');
+          arrow.textContent = sortDir==='asc' ? '\u25B2' : '\u25BC';
+        } else {
+          th.classList.remove('sorted');
+          arrow.textContent = '';
+        }
+      });
+      let list = rows.slice();
+      if(filterText){
+        list = list.filter(r=>{
+          return ['name','head_of_household','bec','address','phone_whatsapp','email','talents_skills']
+            .some(k => String(r[k]||'').toLowerCase().includes(filterText));
+        });
+      }
+      list.sort((a,b)=> sortDir==='asc' ? cmp(a[sortKey], b[sortKey]) : cmp(b[sortKey], a[sortKey]));
+
+      const tbody = document.getElementById('tbody');
+      const empty = document.getElementById('emptyState');
+      if(!list.length){
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        empty.textContent = rows.length ? 'No records match your search.' : 'No submissions yet.';
+        return;
+      }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = list.map(r=>`
+        <tr class="expand-row" data-id="${r.id}">
+          <td>${escapeHtml(fmtDate(r.submitted_at))}</td>
+          <td><strong>${escapeHtml(r.name)}</strong></td>
+          <td>${escapeHtml(r.head_of_household)}</td>
+          <td>${escapeHtml(r.bec) || '<span class="muted">&mdash;</span>'}</td>
+          <td>${escapeHtml(r.address)}</td>
+          <td>${escapeHtml(r.phone_whatsapp) || '<span class="muted">&mdash;</span>'}</td>
+          <td>${escapeHtml(r.email) || '<span class="muted">&mdash;</span>'}</td>
+          <td>${r.children_count||0}</td>
+          <td>${r.homebound_sick ? '<span class="pill pill-y">Yes</span>' : '<span class="pill pill-n">No</span>'}</td>
+          <td>${r.new_to_parish  ? '<span class="pill pill-y">Yes</span>' : '<span class="pill pill-n">No</span>'}</td>
+        </tr>
+      `).join('');
+
+      // Row-click → expand a detail sub-row with the members list
+      tbody.querySelectorAll('tr.expand-row').forEach(tr=>{
+        tr.addEventListener('click', ()=> toggleDetail(tr));
+      });
+    }
+
+    async function toggleDetail(tr){
+      const next = tr.nextElementSibling;
+      if(next && next.classList.contains('detail-row')){
+        next.remove(); return;
+      }
+      const id = tr.dataset.id;
+      const detailTr = document.createElement('tr');
+      detailTr.className='detail-row';
+      detailTr.innerHTML = `<td colspan="10" class="detail">Loading household details…</td>`;
+      tr.after(detailTr);
+      const cell = detailTr.firstElementChild;
+
+      const [{ data: members, error: mErr }, { data: pcRows, error: pErr }] = await Promise.all([
+        supabase.from('household_members').select('*').eq('household_id', id).order('member_type').order('display_order'),
+        supabase.from('pastoral_care').select('*').eq('household_id', id).limit(1),
+      ]);
+      if(mErr || pErr){
+        cell.innerHTML = `<span style="color:var(--err)">Error loading details: ${escapeHtml((mErr||pErr).message)}</span>`;
+        return;
+      }
+      const pc = (pcRows && pcRows[0]) || {};
+      const couples  = (members||[]).filter(m=>m.member_type==='couple');
+      const children = (members||[]).filter(m=>m.member_type==='child');
+
+      const coupleHtml = couples.length ? `
+        <h4>Marriage</h4>
+        <div class="detail-grid">
+          ${couples.map(c=>`
+            <div><span>Couple:</span>${escapeHtml(c.full_name)}</div>
+            <div><span>Date:</span>${escapeHtml(c.marriage_date||'—')}</div>
+            <div><span>Place:</span>${escapeHtml(c.marriage_place||'—')}</div>
+          `).join('')}
+        </div>` : '';
+
+      const childrenHtml = children.length ? `
+        <h4>Children (${children.length})</h4>
+        <table><thead><tr>
+          <th style="padding:8px 10px">Name</th>
+          <th style="padding:8px 10px">Date of Birth</th>
+          <th style="padding:8px 10px">Baptism</th>
+          <th style="padding:8px 10px">Holy Comm.</th>
+          <th style="padding:8px 10px">Confirmation</th>
+          <th style="padding:8px 10px">Married</th>
+        </tr></thead><tbody>
+          ${children.map(c=>`
+            <tr>
+              <td style="padding:8px 10px">${escapeHtml(c.full_name)}</td>
+              <td style="padding:8px 10px">${escapeHtml(c.date_of_birth||'—')}</td>
+              <td style="padding:8px 10px">${c.sacrament_baptism?'&#10004;':'&mdash;'}</td>
+              <td style="padding:8px 10px">${c.sacrament_holy_comm?'&#10004;':'&mdash;'}</td>
+              <td style="padding:8px 10px">${c.sacrament_confirmation?'&#10004;':'&mdash;'}</td>
+              <td style="padding:8px 10px">${c.sacrament_married?'&#10004;':'&mdash;'}</td>
+            </tr>`).join('')}
+        </tbody></table>` : '<p class="muted">No children listed.</p>';
+
+      const pastoralHtml = `
+        <h4>Pastoral Care</h4>
+        <div class="detail-grid">
+          <div><span>Homebound / Sick:</span>${pc.homebound_sick?'Yes':'No'}</div>
+          <div><span>Requests Visit:</span>${pc.request_visit?'Yes':'No'}</div>
+          <div><span>New to Parish:</span>${pc.new_to_parish?'Yes':'No'}</div>
+          <div><span>Talents / Skills:</span>${escapeHtml(pc.talents_skills||'—')}</div>
+        </div>`;
+
+      cell.innerHTML = coupleHtml + childrenHtml + pastoralHtml;
+    }
+
+    /* ---------- CSV export ---------- */
+    document.getElementById('exportBtn').addEventListener('click', ()=>{
+      if(!rows.length){ alert('Nothing to export yet.'); return; }
+      const cols = ['submitted_at','name','bec','head_of_household','address','phone_whatsapp','email','children_count','homebound_sick','request_visit','new_to_parish','talents_skills'];
+      const header = cols.join(',');
+      const body = rows.map(r => cols.map(c=>{
+        let v = r[c];
+        if(v==null) v='';
+        if(typeof v==='boolean') v = v?'yes':'no';
+        v = String(v).replace(/"/g,'""');
+        return `"${v}"`;
+      }).join(',')).join('\n');
+      const blob = new Blob([header+'\n'+body], {type:'text/csv;charset=utf-8'});
+      const url  = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download = `parish-census-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    /* ---------- Init ---------- */
+    supabase.auth.onAuthStateChange(()=>refreshSession());
+    refreshSession();
+  </script>
+</body>
+</html>

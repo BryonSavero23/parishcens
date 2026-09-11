@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parish Census Form</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#f6f1e7;
+      --paper:#ffffff;
+      --ink:#1c1a17;
+      --muted:#6b6459;
+      --line:#d9cfbc;
+      --accent:#7a1f1f;      /* liturgical burgundy */
+      --accent-2:#b08a2e;    /* gold */
+      --ok:#2e7d32;
+      --err:#b3261e;
+      --radius:14px;
+      --shadow:0 10px 30px rgba(28,26,23,.08), 0 2px 6px rgba(28,26,23,.05);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+    }
+    .wrap{max-width:900px;margin:0 auto;padding:28px 18px 80px}
+    header.masthead{
+      text-align:center;
+      padding:18px 8px 6px;
+    }
+    header.masthead .cross{
+      color:var(--accent);
+      font-size:26px;
+      letter-spacing:.35em;
+    }
+    header.masthead h1{
+      font-family:'Cormorant Garamond',serif;
+      font-weight:700;
+      font-size:clamp(28px,4.5vw,40px);
+      margin:6px 0 4px;
+      color:var(--accent);
+      letter-spacing:.02em;
+    }
+    header.masthead .sub{
+      font-style:italic;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:22px 22px 8px;
+      margin-top:22px;
+      box-shadow:var(--shadow);
+    }
+    .card h2{
+      font-family:'Cormorant Garamond',serif;
+      font-size:22px;
+      margin:0 0 4px;
+      color:var(--accent);
+      display:flex;align-items:center;gap:10px;
+    }
+    .card h2 .num{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:28px;height:28px;border-radius:50%;
+      background:var(--accent);color:#fff;font-size:14px;font-weight:700;
+      font-family:'Inter',sans-serif;
+    }
+    .card h3{
+      font-size:14px;text-transform:uppercase;letter-spacing:.14em;
+      color:var(--muted);margin:18px 0 8px;font-weight:600;
+    }
+    .hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+    .field.full{grid-column:1/-1}
+    label{font-size:13px;font-weight:600;color:#3d3a34}
+    label .req{color:var(--accent);margin-left:2px}
+    input[type=text],input[type=email],input[type=tel],input[type=date],textarea{
+      font:inherit;color:var(--ink);
+      background:#fbf7ef;
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:10px 12px;
+      transition:border-color .15s, box-shadow .15s, background .15s;
+    }
+    input:focus,textarea:focus{
+      outline:none;border-color:var(--accent);
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(122,31,31,.12);
+    }
+    textarea{min-height:80px;resize:vertical}
+    .row-actions{display:flex;gap:8px;justify-content:flex-end;margin:8px 0 16px}
+    .btn{
+      font:inherit;font-weight:600;cursor:pointer;
+      border-radius:8px;padding:10px 16px;border:1px solid transparent;
+      transition:transform .05s,filter .15s,background .15s,color .15s;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover{filter:brightness(1.07)}
+    .btn-ghost{background:transparent;color:var(--accent);border-color:var(--accent)}
+    .btn-ghost:hover{background:rgba(122,31,31,.06)}
+    .btn-sm{padding:6px 10px;font-size:13px}
+    .btn-danger{background:transparent;color:#8a2a20;border-color:#d9b7b3}
+    .btn-danger:hover{background:#f7e6e4}
+    .child-card{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:14px;
+      margin:10px 0;
+      background:#fdfbf5;
+    }
+    .child-card header{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:6px;
+    }
+    .child-card header .tag{
+      font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;
+    }
+    .checks{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;margin-top:6px;
+    }
+    .check{
+      display:flex;align-items:center;gap:8px;
+      padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+      background:#fff;cursor:pointer;user-select:none;font-size:13px;
+    }
+    .check input{accent-color:var(--accent)}
+    .yn{display:flex;gap:16px;flex-wrap:wrap;margin-top:4px}
+    .yn label{display:flex;gap:6px;align-items:center;font-weight:500}
+    .privacy{
+      background:#f0e9d7;border:1px dashed var(--line);
+      padding:12px 14px;border-radius:10px;font-size:13px;color:#4a4437;
+      margin-top:12px;
+    }
+    .submit-row{display:flex;justify-content:center;margin-top:22px}
+    .submit-row .btn{padding:14px 34px;font-size:16px}
+    .status{
+      margin-top:14px;text-align:center;font-size:14px;min-height:20px;
+    }
+    .status.ok{color:var(--ok)}
+    .status.err{color:var(--err)}
+    .success-panel{
+      display:none;text-align:center;padding:40px 20px;
+    }
+    .success-panel.show{display:block}
+    .success-panel .seal{
+      font-size:56px;color:var(--accent);margin-bottom:8px;
+    }
+    footer{
+      text-align:center;color:var(--muted);font-size:12px;margin-top:26px;
+    }
+    @media (max-width:640px){
+      .grid{grid-template-columns:1fr}
+      .checks{grid-template-columns:repeat(2,1fr)}
+      .wrap{padding:16px 12px 60px}
+      .card{padding:18px 16px 6px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="masthead">
+      <div class="cross">&#10013;</div>
+      <h1>Parish Census Form</h1>
+      <div class="sub">Confidential — For Pastoral Care and Parish Records Only</div>
+    </header>
+
+    <form id="censusForm" novalidate>
+      <!-- Header (Name + BEC) -->
+      <section class="card">
+        <div class="grid">
+          <div class="field">
+            <label for="name">Name <span class="req">*</span></label>
+            <input id="name" name="name" type="text" required autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="bec">BEC (Basic Ecclesial Community)</label>
+            <input id="bec" name="bec" type="text" />
+          </div>
+        </div>
+      </section>
+
+      <!-- §1 HOUSEHOLD INFORMATION -->
+      <section class="card">
+        <h2><span class="num">1</span> Household Information</h2>
+        <div class="grid">
+          <div class="field full">
+            <label for="address">Address <span class="req">*</span></label>
+            <input id="address" name="address" type="text" required autocomplete="street-address" />
+          </div>
+          <div class="field full">
+            <label for="head">Head of Household <span class="req">*</span></label>
+            <input id="head" name="head" type="text" required />
+          </div>
+          <div class="field">
+            <label for="phone">Phone (WhatsApp)</label>
+            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="e.g. +63 917 123 4567" />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="name@example.com" />
+          </div>
+        </div>
+      </section>
+
+      <!-- §2 MEMBER DETAILS -->
+      <section class="card">
+        <h2><span class="num">2</span> Member Details</h2>
+        <p class="hint">Please list all family members living at this address.</p>
+
+        <h3>I. Marriage Date and Place</h3>
+        <div class="grid">
+          <div class="field">
+            <label for="couple">Name of Couple</label>
+            <input id="couple" name="couple" type="text" placeholder="e.g. Juan &amp; Maria Dela Cruz" />
+          </div>
+          <div class="field">
+            <label for="marriageDate">Date</label>
+            <input id="marriageDate" name="marriageDate" type="date" />
+          </div>
+          <div class="field full">
+            <label for="marriagePlace">Place</label>
+            <input id="marriagePlace" name="marriagePlace" type="text" placeholder="Parish / Municipality" />
+          </div>
+        </div>
+
+        <h3>II. Children</h3>
+        <p class="hint">Add one card per child. Check any sacraments they have received.</p>
+        <div id="children"></div>
+        <div class="row-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="addChildBtn">+ Add Child</button>
+        </div>
+      </section>
+
+      <!-- §3 PASTORAL CARE -->
+      <section class="card">
+        <h2><span class="num">3</span> Pastoral Care &amp; Service</h2>
+
+        <div class="field">
+          <label>Homebound / Sick?</label>
+          <div class="yn" role="radiogroup" aria-label="Homebound or sick">
+            <label><input type="radio" name="homebound" value="yes" /> Yes</label>
+            <label><input type="radio" name="homebound" value="no" checked /> No</label>
+          </div>
+          <div id="visitWrap" style="display:none;margin-top:8px">
+            <label style="display:flex;gap:8px;align-items:center;font-weight:500">
+              <input type="checkbox" id="requestVisit" />
+              Would you like a priest / minister to visit?
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>New to the Parish?</label>
+          <div class="yn" role="radiogroup" aria-label="New to the parish">
+            <label><input type="radio" name="newParish" value="yes" /> Yes</label>
+            <label><input type="radio" name="newParish" value="no" checked /> No</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="talents">Talents / Skills</label>
+          <p class="hint" style="margin-top:0">
+            What gifts can you share with the parish? (e.g. maintenance, music, accounting, cleaning, teaching&hellip;)
+          </p>
+          <textarea id="talents" name="talents" rows="3"></textarea>
+        </div>
+
+        <div class="privacy">
+          <strong>Privacy Notice.</strong> The information collected in this form is stored securely by the Parish Office and is used solely for the administration of sacraments, pastoral care, and parish communication. It will not be shared with unauthorized third parties.
+        </div>
+      </section>
+
+      <div class="submit-row">
+        <button type="submit" class="btn btn-primary" id="submitBtn">Submit Census</button>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </form>
+
+    <div class="card success-panel" id="successPanel">
+      <div class="seal">&#10013;</div>
+      <h2 style="justify-content:center">Thank you!</h2>
+      <p>Your household has been recorded. May God bless your family.</p>
+      <button type="button" class="btn btn-ghost" onclick="location.reload()">Submit another</button>
+    </div>
+
+    <footer>&copy; <span id="yr"></span> Parish Office &middot; Powered by Supabase</footer>
+  </div>
+
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    /* ---------------- Supabase client ---------------- */
+    const SUPABASE_URL      = window.SUPABASE_URL      || 'https://YOUR-PROJECT-REF.supabase.co';
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /* ---------------- Dynamic children ---------------- */
+    const childrenWrap = document.getElementById('children');
+    let childSeq = 0;
+
+    function addChild(){
+      childSeq += 1;
+      const idx = childSeq;
+      const card = document.createElement('div');
+      card.className = 'child-card';
+      card.dataset.idx = idx;
+      card.innerHTML = `
+        <header>
+          <span class="tag">Child #${idx}</span>
+          <button type="button" class="btn btn-danger btn-sm" data-remove>Remove</button>
+        </header>
+        <div class="grid">
+          <div class="field">
+            <label>Name</label>
+            <input type="text" data-field="name" />
+          </div>
+          <div class="field">
+            <label>Date of Birth</label>
+            <input type="date" data-field="dob" />
+          </div>
+        </div>
+        <label style="font-size:13px;color:#3d3a34;font-weight:600">Sacraments received</label>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-field="baptism" /> Baptism</label>
+          <label class="check"><input type="checkbox" data-field="holy_comm" /> Holy Communion</label>
+          <label class="check"><input type="checkbox" data-field="confirmation" /> Confirmation</label>
+          <label class="check"><input type="checkbox" data-field="married" /> Married</label>
+        </div>
+      `;
+      card.querySelector('[data-remove]').addEventListener('click', () => {
+        card.remove();
+        renumberChildren();
+      });
+      childrenWrap.appendChild(card);
+    }
+    function renumberChildren(){
+      [...childrenWrap.querySelectorAll('.child-card')].forEach((c,i)=>{
+        c.querySelector('.tag').textContent = `Child #${i+1}`;
+      });
+    }
+    document.getElementById('addChildBtn').addEventListener('click', addChild);
+    addChild(); // start with one child row
+
+    /* ---------------- Conditional: visit request ---------------- */
+    const visitWrap = document.getElementById('visitWrap');
+    document.querySelectorAll('input[name="homebound"]').forEach(r=>{
+      r.addEventListener('change', ()=>{
+        const isYes = document.querySelector('input[name="homebound"]:checked').value === 'yes';
+        visitWrap.style.display = isYes ? 'block' : 'none';
+        if(!isYes) document.getElementById('requestVisit').checked = false;
+      });
+    });
+
+    /* ---------------- Submit ---------------- */
+    const form = document.getElementById('censusForm');
+    const statusEl = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function setStatus(msg, kind){
+      statusEl.textContent = msg || '';
+      statusEl.className = 'status ' + (kind || '');
+    }
+
+    function collectChildren(){
+      return [...childrenWrap.querySelectorAll('.child-card')].map((c,i)=>{
+        const g = (f)=> c.querySelector(`[data-field="${f}"]`);
+        const name = g('name').value.trim();
+        const dob  = g('dob').value || null;
+        // Skip completely-empty rows
+        const hasAny = name || dob
+          || g('baptism').checked || g('holy_comm').checked
+          || g('confirmation').checked || g('married').checked;
+        if(!hasAny) return null;
+        return {
+          member_type: 'child',
+          display_order: i,
+          full_name: name || '(unnamed)',
+          date_of_birth: dob,
+          sacrament_baptism:      g('baptism').checked,
+          sacrament_holy_comm:    g('holy_comm').checked,
+          sacrament_confirmation: g('confirmation').checked,
+          sacrament_married:      g('married').checked,
+        };
+      }).filter(Boolean);
+    }
+
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      setStatus('');
+
+      // Basic validation
+      if(!form.checkValidity()){
+        form.reportValidity();
+        return;
+      }
+      if(SUPABASE_URL.includes('YOUR-PROJECT-REF') || SUPABASE_ANON_KEY.includes('YOUR_')){
+        setStatus('Supabase credentials are not configured. Edit config.js.', 'err');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+      setStatus('Saving your submission…');
+
+      try {
+        // 1) Insert household
+        const household = {
+          name:              document.getElementById('name').value.trim(),
+          bec:               document.getElementById('bec').value.trim() || null,
+          address:           document.getElementById('address').value.trim(),
+          head_of_household: document.getElementById('head').value.trim(),
+          phone_whatsapp:    document.getElementById('phone').value.trim() || null,
+          email:             document.getElementById('email').value.trim() || null,
+        };
+        const { data: hhRows, error: hhErr } = await supabase
+          .from('households').insert(household).select('id').single();
+        if(hhErr) throw hhErr;
+        const household_id = hhRows.id;
+
+        // 2) Insert members (couple row + children rows)
+        const members = [];
+        const coupleName    = document.getElementById('couple').value.trim();
+        const marriageDate  = document.getElementById('marriageDate').value || null;
+        const marriagePlace = document.getElementById('marriagePlace').value.trim() || null;
+        if(coupleName || marriageDate || marriagePlace){
+          members.push({
+            household_id,
+            member_type: 'couple',
+            display_order: 0,
+            full_name: coupleName || '(couple)',
+            marriage_date: marriageDate,
+            marriage_place: marriagePlace,
+          });
+        }
+        collectChildren().forEach(c => members.push({ ...c, household_id }));
+        if(members.length){
+          const { error: mErr } = await supabase.from('household_members').insert(members);
+          if(mErr) throw mErr;
+        }
+
+        // 3) Insert pastoral care
+        const homebound = document.querySelector('input[name="homebound"]:checked').value === 'yes';
+        const newParish = document.querySelector('input[name="newParish"]:checked').value === 'yes';
+        const pastoral = {
+          household_id,
+          homebound_sick: homebound,
+          request_visit: homebound && document.getElementById('requestVisit').checked,
+          new_to_parish: newParish,
+          talents_skills: document.getElementById('talents').value.trim() || null,
+        };
+        const { error: pErr } = await supabase.from('pastoral_care').insert(pastoral);
+        if(pErr) throw pErr;
+
+        // Success
+        form.style.display = 'none';
+        statusEl.textContent = '';
+        document.getElementById('successPanel').classList.add('show');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        console.error(err);
+        setStatus('Submission failed: ' + (err.message || err), 'err');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Census';
+      }
+    });
+  </script>
+</body>
+</html>
