@@ -456,6 +456,10 @@
             full_name: coupleName || '(couple)',
             marriage_date: marriageDate,
             marriage_place: marriagePlace,
+            sacrament_baptism: false,
+            sacrament_holy_comm: false,
+            sacrament_confirmation: false,
+            sacrament_married: false,
           });
         }
         collectChildren().forEach(c => members.push({ ...c, household_id }));
